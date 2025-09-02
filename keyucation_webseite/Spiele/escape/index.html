@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Unity WebGL Player | EduScape</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico" />
+    <link rel="stylesheet" href="TemplateData/style.css" />
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 90%;
+        height: 90%;
+        overflow: hidden;
+        background: #231F20;
+      }
+      #unity-container {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+      #unity-canvas { display: block; }
+      #uploadButton {
+        position: fixed;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 10;
+        display: none;
+        padding: 40px 70px;
+        font-size: 22px;
+        font-weight: bold;
+        border-radius: 10px;
+        cursor: pointer;
+        background-color: #4CAF50;
+        color: white; border: none;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      }
+      #uploadButton:hover { background-color: #45a049; }
+    </style>
+  </head>
+  <body>
+    <div id="unity-container" class="unity-desktop">
+      <canvas id="unity-canvas" tabindex="-1"></canvas>
+
+      <div id="unity-loading-bar">
+        <div id="unity-logo"></div>
+        <div id="unity-progress-bar-empty">
+          <div id="unity-progress-bar-full"></div>
+        </div>
+      </div>
+      <div id="unity-warning"></div>
+      <div id="unity-footer">
+        <div id="unity-webgl-logo"></div>
+        <div id="unity-fullscreen-button"></div>
+        <div id="unity-build-title">EduScape</div>
+      </div>
+    </div>
+
+    <input type="file" id="fileInput" style="display:none" accept=".json" />
+    <button id="uploadButton">Datei hochladen</button>
+
+    <script>
+      var container = document.querySelector("#unity-container");
+      var canvas = document.querySelector("#unity-canvas");
+      var loadingBar = document.querySelector("#unity-loading-bar");
+      var progressBarFull = document.querySelector("#unity-progress-bar-full");
+      var fullscreenButton = document.querySelector("#unity-fullscreen-button");
+      var warningBanner = document.querySelector("#unity-warning");
+
+      function unityShowBanner(msg, type) {
+        function updateBannerVisibility() {
+          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+        }
+        var div = document.createElement('div');
+        div.innerHTML = msg;
+        warningBanner.appendChild(div);
+        if (type == 'error') div.style = 'background: red; padding: 10px;';
+        else {
+          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+          setTimeout(function () {
+            if (div.parentNode) warningBanner.removeChild(div);
+            updateBannerVisibility();
+          }, 5000);
+        }
+        updateBannerVisibility();
+      }
+
+      var buildUrl = "Build";
+      var loaderUrl = buildUrl + "/V9_WebGL.loader.js";
+      var config = {
+        dataUrl: buildUrl + "/V9_WebGL.data",
+        frameworkUrl: buildUrl + "/V9_WebGL.framework.js",
+        codeUrl: buildUrl + "/V9_WebGL.wasm",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "Bockerl Games",
+        productName: "EduScape",
+        productVersion: "0.1",
+        showBanner: unityShowBanner,
+        devicePixelRatio: window.devicePixelRatio || 1
+      };
+
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        var meta = document.createElement('meta');
+        meta.name = 'viewport';
+        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+        document.getElementsByTagName('head')[0].appendChild(meta);
+        container.className = "unity-mobile";
+        canvas.className = "unity-mobile";
+      }
+
+      var unityInstance = null;
+
+      function resizeCanvas() {
+        var w = Math.max(0, window.innerWidth);
+        var h = Math.max(0, window.innerHeight);
+        canvas.style.width  = w + "px";
+        canvas.style.height = h + "px";
+        var dpr = window.devicePixelRatio || 1;
+        var pw = Math.floor(w * dpr);
+        var ph = Math.floor(h * dpr);
+        if (canvas.width !== pw || canvas.height !== ph) {
+          canvas.width  = pw;
+          canvas.height = ph;
+          if (unityInstance && unityInstance.Module && unityInstance.Module.setCanvasSize) {
+            unityInstance.Module.setCanvasSize(pw, ph, true);
+          }
+        }
+      }
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+
+      loadingBar.style.display = "block";
+
+      // ---- Fullscreen-Helfer (ohne Doppelauslösung) ----
+      function isFullscreen() {
+        return !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
+      }
+
+      function tryEnterFullscreen() {
+        if (isFullscreen()) return Promise.resolve(); // schon im Vollbild
+        try { if (unityInstance && unityInstance.SetFullscreen) unityInstance.SetFullscreen(1); } catch(e) {}
+        var el = container || canvas;
+        var rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+        if (rfs) {
+          return rfs.call(el).catch(()=>{});
+        }
+        return Promise.resolve();
+      }
+
+      let gestureListenerActive = false;
+      function scheduleGestureFullscreen() {
+        if (gestureListenerActive || isFullscreen()) return; // nur, wenn nicht bereits Vollbild
+        gestureListenerActive = true;
+
+        const cleanup = () => {
+          document.removeEventListener('pointerdown', onGesture, true);
+          document.removeEventListener('keydown', onGesture, true);
+          document.removeEventListener('fullscreenchange', onFsChange, true);
+          document.removeEventListener('webkitfullscreenchange', onFsChange, true);
+          gestureListenerActive = false;
+        };
+
+        const onFsChange = () => {
+          if (isFullscreen()) cleanup(); // Listener sofort entfernen, sobald Vollbild erreicht
+        };
+
+        const onGesture = () => {
+          cleanup();
+          // Nur versuchen, wenn nach dem Klick noch nicht Vollbild
+          if (!isFullscreen()) tryEnterFullscreen();
+        };
+
+        document.addEventListener('pointerdown', onGesture, true);
+        document.addEventListener('keydown', onGesture, true);
+        document.addEventListener('fullscreenchange', onFsChange, true);
+        document.addEventListener('webkitfullscreenchange', onFsChange, true);
+
+        unityShowBanner("Klicken oder Taste drücken, um in den Vollbildmodus zu wechseln.", "warning");
+      }
+      // ---------------------------------------------------
+
+      var script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        createUnityInstance(canvas, config, (progress) => {
+          progressBarFull.style.width = (100 * progress) + "%";
+        }).then((instance) => {
+          unityInstance = instance;
+          loadingBar.style.display = "none";
+          fullscreenButton.onclick = () => unityInstance.SetFullscreen(1);
+          document.getElementById('uploadButton').style.display = 'block';
+          resizeCanvas();
+        }).catch((message) => {
+          alert(message);
+        });
+      };
+      document.body.appendChild(script);
+
+      // Datei-Upload -> Inhalt an Unity + genau ein Fullscreen-Versuch
+      document.getElementById('fileInput').addEventListener('change', function (event) {
+        var file = event.target.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function (e) {
+          var fileContent = e.target.result;
+          if (unityInstance) {
+            unityInstance.SendMessage('Manager', 'LadeJsonDatei', fileContent);
+            document.getElementById('uploadButton').style.display = 'none';
+
+            // 1) Einmal versuchen
+            Promise.resolve(tryEnterFullscreen()).catch(() => {}).finally(() => {
+              // 2) Nur falls NICHT im Vollbild, Fallback über nächste Geste aktivieren
+              if (!isFullscreen()) {
+                scheduleGestureFullscreen();
+              }
+            });
+          } else {
+            console.error("Unity-Instance ist noch nicht bereit.");
+          }
+        };
+        reader.readAsText(file);
+      });
+
+      document.getElementById('uploadButton').addEventListener('click', function () {
+        document.getElementById('fileInput').click();
+      });
+    </script>
+  </body>
+</html>

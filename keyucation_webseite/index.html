@@ -21,6 +21,7 @@
     <aside id="sideMenu">
       <button class="side-link active" data-target="explanationSection">Erklärung</button>
       <button class="side-link" data-target="uploadSection">Inhalt hochladen</button>
+      <button class="side-link" data-target="playSection">Spielen</button>
     </aside>
     <main id="mainContent">
       <!-- Erklärung Section -->
@@ -46,6 +47,14 @@
         </div>
         <button id="addSampleBtn" type="button">Datei hinzufügen</button>
         <div id="sampleList" class="list-container"></div>
+      </section>
+
+      <!-- Play Section -->
+      <section id="playSection" class="sidecontent">
+        <h2>Spielen</h2>
+        <p>Hier können Sie das interaktive WebGL‑Spiel direkt auf der Webseite ausführen.</p>
+        <!-- TODO: Ersetzen Sie den src‑Wert durch den tatsächlichen Pfad zu Ihrem WebGL‑Build -->
+        <iframe src="Spiele/escape/index.html" style="width: 100%; height: 600px; border: none;"></iframe>
       </section>
     </main>
   </div>

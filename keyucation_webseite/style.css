@@ -1,0 +1,262 @@
+/* Allgemeine Stile */
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f5f7fa;
+  color: #333;
+}
+
+/* Kopfzeile enthält den Titel und das Logo.  Der Titel bleibt links, das Logo wandert nach rechts. */
+header {
+  background-color: #2a7ae2;
+  color: #fff;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+/* Logo-Container begrenzt die Größe des Logos, sodass es sich an die Kopfzeile anpasst. */
+.logo-container img {
+  max-height: 72px; /* Logo etwas größer */
+  width: auto;
+}
+
+/* Struktur im Header */
+.header-left {
+  flex: 1;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Bereich für Benutzerinfo/Login */
+#userArea {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Auth Buttons im Header */
+#userArea button {
+  background-color: #e3e7ed;
+  color: #2a7ae2;
+  border: none;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background-color 0.2s ease;
+}
+
+#userArea button:hover {
+  background-color: #cfd6e3;
+}
+
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+nav .tablink {
+  background-color: #e3e7ed;
+  border: none;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
+}
+
+nav .tablink:hover {
+  background-color: #cfd6e3;
+}
+
+nav .tablink.active {
+  background-color: #1d66c2;
+  color: #fff;
+}
+
+/* Layout: Container mit Seitenmenü und Hauptinhalt */
+.container {
+  display: flex;
+  align-items: flex-start;
+  min-height: calc(100vh - 80px); /* abzüglich der Kopfzeile */
+}
+
+/* Seitenmenü links */
+#sideMenu {
+  width: 200px;
+  background-color: #e3e7ed;
+  padding: 1rem;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
+}
+
+#sideMenu .side-link {
+  display: block;
+  width: 100%;
+  background-color: #e3e7ed;
+  border: none;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.5rem;
+  border-radius: 4px;
+  text-align: left;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+#sideMenu .side-link:hover {
+  background-color: #cfd6e3;
+}
+
+#sideMenu .side-link.active {
+  background-color: #1d66c2;
+  color: #fff;
+}
+
+/* Hauptinhalt rechts vom Seitenmenü */
+#mainContent {
+  flex: 1;
+  padding: 1rem;
+  max-width: none;
+}
+
+/* Seiteninhalte (Home, Beispiel, Erstellen) */
+.sidecontent {
+  display: none;
+  background-color: #fff;
+  padding: 1rem;
+  border-radius: 4px;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1rem;
+}
+
+.sidecontent.active {
+  display: block;
+}
+
+main {
+  /* Das Haupt-Tag fungiert hier nur als semantisches Element; das Styling wird über #mainContent gesteuert. */
+}
+
+/* Tabinhalt */
+.tabcontent {
+  display: none;
+  background-color: #fff;
+  padding: 1rem;
+  border-radius: 4px;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1rem;
+}
+
+.tabcontent.active {
+  display: block;
+}
+
+/* Formular-Reihen */
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.form-row label {
+  min-width: 140px;
+  font-weight: bold;
+}
+
+.form-row input[type="text"],
+.form-row input[type="number"],
+.form-row input[type="file"],
+.form-row select,
+.form-row textarea {
+  flex: 1;
+  padding: 0.4rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+textarea {
+  width: 100%;
+  resize: vertical;
+}
+
+button {
+  background-color: #2a7ae2;
+  color: #fff;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+button:hover {
+  background-color: #235ba8;
+}
+
+/* Listen */
+.list-container {
+  margin-top: 1rem;
+}
+
+.list-item {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.list-item span {
+  flex: 1;
+}
+
+.list-item button {
+  background-color: #d9534f;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+}
+
+.list-item button:hover {
+  background-color: #c9302c;
+}
+
+/* Kleiner Stil für verschachtelte Listen (z.B. Beschriftungsantworten) */
+.small-list .list-item {
+  padding: 0.3rem;
+  font-size: 0.8rem;
+}
+
+pre {
+  background-color: #f0f4f8;
+  border: 1px solid #e3e7ed;
+  border-radius: 4px;
+  padding: 0.5rem;
+  max-height: 300px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-size: 0.8rem;
+}

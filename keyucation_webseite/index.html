@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KeyUcation</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <h1>KeyUcation</h1>
+    </div>
+    <div class="header-right">
+      <div class="logo-container">
+        <img src="logo.png" alt="KeyUcation Logo">
+      </div>
+    </div>
+  </header>
+  <div class="container">
+    <aside id="sideMenu">
+      <button class="side-link active" data-target="explanationSection">Erklärung</button>
+      <button class="side-link" data-target="uploadSection">Inhalt hochladen</button>
+    </aside>
+    <main id="mainContent">
+      <!-- Erklärung Section -->
+      <section id="explanationSection" class="sidecontent active">
+        <h2>Willkommen bei KeyUcation</h2>
+        <p>KeyUcation ist eine Plattform zur Erstellung und Bereitstellung von interaktiven Lerninhalten. In diesem Bereich können Sie mehr über die Vision und Verwendung von KeyUcation erfahren.</p>
+      </section>
+      <!-- Upload Section -->
+      <section id="uploadSection" class="sidecontent">
+        <h2>Inhalt hochladen</h2>
+        <p>Laden Sie JSON-Dateien hoch und stellen Sie sie als Beispieldateien zur Verfügung. Bitte vergeben Sie einen Titel und eine kurze Beschreibung.</p>
+        <div class="form-row">
+          <label for="sampleTitle">Titel:</label>
+          <input type="text" id="sampleTitle" placeholder="Titel der Datei">
+        </div>
+        <div class="form-row">
+          <label for="sampleDescription">Beschreibung:</label>
+          <input type="text" id="sampleDescription" placeholder="Beschreibung der Datei">
+        </div>
+        <div class="form-row">
+          <label for="sampleFile">JSON-Datei:</label>
+          <input type="file" id="sampleFile" accept="application/json">
+        </div>
+        <button id="addSampleBtn" type="button">Datei hinzufügen</button>
+        <div id="sampleList" class="list-container"></div>
+      </section>
+    </main>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,283 +1,251 @@
-/* Allgemeine Stile */
+/* ========== Basis/Reset ========== */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+}
+
 body {
-  font-family: Arial, Helvetica, sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: #f5f7fa;
-  color: #333;
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 0;
+    color: #333;
+    background-color: #f5f7fa;
+    line-height: 1.5;
 }
 
-/* Kopfzeile enthält den Titel und das Logo.  Der Titel bleibt links, das Logo wandert nach rechts. */
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* ========== Header ========== */
 header {
-  background-color: #2a7ae2;
-  color: #fff;
-  padding: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+    background-color: #2a7ae2;
+    color: #fff;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
 }
 
-header h1 {
-  margin: 0;
-  font-size: 1.6rem;
-}
+    header h1 {
+        margin: 0;
+        font-size: 1.6rem;
+    }
 
-/* Logo-Container begrenzt die Größe des Logos, sodass es sich an die Kopfzeile anpasst. */
 .logo-container img {
-  max-height: 72px; /* Logo etwas größer */
-  width: auto;
+    max-height: 72px;
+    width: auto;
 }
 
-/* Struktur im Header */
 .header-left {
-  flex: 1;
+    flex: 1;
 }
 
 .header-right {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
 
-/* Bereich für Benutzerinfo/Login */
-#userArea {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-/* Auth Buttons im Header */
-#userArea button {
-  background-color: #e3e7ed;
-  color: #2a7ae2;
-  border: none;
-  padding: 0.3rem 0.6rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.8rem;
-  transition: background-color 0.2s ease;
-}
-
-#userArea button:hover {
-  background-color: #cfd6e3;
-}
-
-nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-nav .tablink {
-  background-color: #e3e7ed;
-  border: none;
-  padding: 0.5rem 0.75rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: background-color 0.2s ease;
-}
-
-nav .tablink:hover {
-  background-color: #cfd6e3;
-}
-
-nav .tablink.active {
-  background-color: #1d66c2;
-  color: #fff;
-}
-
-/* Layout: Container mit Seitenmenü und Hauptinhalt */
+/* ========== Layout ========== */
 .container {
-  display: flex;
-  align-items: flex-start;
-  min-height: calc(100vh - 80px); /* abzüglich der Kopfzeile */
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    max-width: none;
+    margin: 0;
+    width: 100%;
 }
 
-/* Seitenmenü links */
+
 #sideMenu {
-  width: 200px;
-  background-color: #e3e7ed;
-  padding: 1rem;
-  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
+    width: 220px;
+    background-color: #e3e7ed;
+    padding: 1rem;
+    border-radius: 6px;
+    box-shadow: 2px 0 4px rgba(0,0,0,0.05);
+    position: sticky;
+    top: 1rem; /* bleibt beim Scrollen sichtbar */
 }
 
-#sideMenu .side-link {
-  display: block;
-  width: 100%;
-  background-color: #e3e7ed;
-  border: none;
-  padding: 0.5rem 0.75rem;
-  margin-bottom: 0.5rem;
-  border-radius: 4px;
-  text-align: left;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
+    /* Links in der Sidebar wie Buttons stylen */
+    #sideMenu .side-link {
+        display: block;
+        width: 100%;
+        background-color: #e3e7ed;
+        border: none;
+        padding: 0.6rem 0.75rem;
+        margin-bottom: 0.5rem;
+        border-radius: 6px;
+        text-align: left;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: background-color 0.2s ease, box-shadow 0.2s ease;
+        text-decoration: none; /* <a> ohne Unterstreichung */
+        color: inherit; /* Textfarbe wie umgebend */
+        outline: none;
+    }
 
-#sideMenu .side-link:hover {
-  background-color: #cfd6e3;
-}
+        #sideMenu .side-link:hover {
+            background-color: #cfd6e3;
+        }
 
-#sideMenu .side-link.active {
-  background-color: #1d66c2;
-  color: #fff;
-}
+        #sideMenu .side-link:focus-visible {
+            box-shadow: 0 0 0 3px #bcd2ff; /* Tastaturfokus sichtbar */
+        }
 
-/* Hauptinhalt rechts vom Seitenmenü */
+        #sideMenu .side-link.active {
+            background-color: #1d66c2;
+            color: #fff;
+        }
+
+/* Hauptbereich */
 #mainContent {
-  flex: 1;
-  padding: 1rem;
-  max-width: none;
+    flex: 1;
+    padding: 0.5rem;
+    min-width: 0; /* bessere Shrinkbarkeit */
 }
 
-/* Seiteninhalte (Home, Beispiel, Erstellen) */
 .sidecontent {
-  display: none;
-  background-color: #fff;
-  padding: 1rem;
-  border-radius: 4px;
-  box-shadow: 0 0 4px rgba(0, 0, 0, 0.05);
-  margin-bottom: 1rem;
+    display: none;
+    background-color: #fff;
+    padding: 1rem;
+    border-radius: 6px;
+    box-shadow: 0 0 4px rgba(0,0,0,0.05);
+    margin-bottom: 1rem;
 }
 
-.sidecontent.active {
-  display: block;
+    .sidecontent.active {
+        display: block;
+    }
+
+h2 {
+    margin-top: 0;
 }
 
-main {
-  /* Das Haupt-Tag fungiert hier nur als semantisches Element; das Styling wird über #mainContent gesteuert. */
-}
-
-/* Tabinhalt */
-.tabcontent {
-  display: none;
-  background-color: #fff;
-  padding: 1rem;
-  border-radius: 4px;
-  box-shadow: 0 0 4px rgba(0, 0, 0, 0.05);
-  margin-bottom: 1rem;
-}
-
-.tabcontent.active {
-  display: block;
-}
-
-/* Formular-Reihen */
+/* ========== Formulare & Buttons ========== */
 .form-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  align-items: center;
-  margin-bottom: 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
 }
 
-.form-row label {
-  min-width: 140px;
-  font-weight: bold;
-}
+    .form-row label {
+        min-width: 140px;
+        font-weight: bold;
+    }
 
-.form-row input[type="text"],
-.form-row input[type="number"],
-.form-row input[type="file"],
-.form-row select,
-.form-row textarea {
-  flex: 1;
-  padding: 0.4rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 0.9rem;
-}
+    .form-row input[type="text"],
+    .form-row input[type="number"],
+    .form-row input[type="file"],
+    .form-row select,
+    .form-row textarea {
+        flex: 1;
+        padding: 0.5rem;
+        border: 1px solid #cfd6e3;
+        border-radius: 6px;
+        font-size: 0.95rem;
+        background: #fff;
+    }
 
 textarea {
-  width: 100%;
-  resize: vertical;
+    width: 100%;
+    resize: vertical;
 }
 
 button {
-  background-color: #2a7ae2;
-  color: #fff;
-  border: none;
-  padding: 0.4rem 0.8rem;
-  font-size: 0.9rem;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+    background-color: #2a7ae2;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.95rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.02s ease;
 }
 
-button:hover {
-  background-color: #235ba8;
-}
+    button:hover {
+        background-color: #235ba8;
+    }
+
+    button:active {
+        transform: translateY(1px);
+    }
+
+    button:focus-visible {
+        outline: 3px solid #bcd2ff;
+    }
 
 /* Listen */
 .list-container {
-  margin-top: 1rem;
+    margin-top: 1rem;
 }
 
 .list-item {
-  background-color: #fff;
-  border: 1px solid #ddd;
-  padding: 0.5rem;
-  margin-bottom: 0.5rem;
-  border-radius: 4px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.85rem;
+    background-color: #fff;
+    border: 1px solid #e6eaf1;
+    padding: 0.6rem;
+    margin-bottom: 0.6rem;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.9rem;
 }
 
-.list-item span {
-  flex: 1;
-}
+    .list-item button {
+        background-color: #d9534f;
+        padding: 0.35rem 0.7rem;
+        font-size: 0.85rem;
+        border-radius: 6px;
+    }
 
-.list-item button {
-  background-color: #d9534f;
-  padding: 0.3rem 0.6rem;
-  font-size: 0.8rem;
-}
+        .list-item button:hover {
+            background-color: #c9302c;
+        }
 
-.list-item button:hover {
-  background-color: #c9302c;
-}
-
-/* Kleiner Stil für verschachtelte Listen (z.B. Beschriftungsantworten) */
 .small-list .list-item {
-  padding: 0.3rem;
-  font-size: 0.8rem;
+    padding: 0.3rem;
+    font-size: 0.85rem;
 }
 
 pre {
-  background-color: #f0f4f8;
-  border: 1px solid #e3e7ed;
-  border-radius: 4px;
-  padding: 0.5rem;
-  max-height: 300px;
-  overflow: auto;
-  white-space: pre-wrap;
-  word-break: break-all;
-  font-size: 0.8rem;
+    background-color: #f0f4f8;
+    border: 1px solid #e3e7ed;
+    border-radius: 6px;
+    padding: 0.6rem;
+    max-height: 300px;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-size: 0.85rem;
 }
 
-/* --- Viewport-Offsets für Scrollfreiheit (anpassbar) --- */
+/* ========== Iframes (WebGL) ========== */
 :root {
-    --header-space: 120px; /* Höhe Header inkl. Padding */
-    --section-overhead: 120px; /* H2 + Text + Abstände im Abschnitt */
+    --header-space: 120px;
+    --section-overhead: 120px;
 }
 
-/* WebGL-Container: hat die Endbreite der Bühne (16:9), zentriert */
 .iframe-container {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem; /* Abstand zwischen Iframe und Button */
-    /* Breite wird aus verfügbarer Höhe abgeleitet => garantiert 16:9 ohne Scrollen */
+    gap: 0.75rem;
     width: min(100%, calc((100dvh - var(--header-space) - var(--section-overhead)) * (16/9)));
-    margin: 1rem auto; /* zentriert im Content */
+    margin: 1rem auto;
 }
 
-    /* Iframe: füllt die Containerbreite, behält 16:9 */
     .iframe-container iframe {
         aspect-ratio: 16 / 9;
         width: 100%;
@@ -287,14 +255,12 @@ pre {
         display: block;
     }
 
-/* Controls: exakt gleiche Breite wie das Iframe, Button rechts bündig */
 .iframe-controls {
     width: 100%;
     display: flex;
-    justify-content: flex-end; /* rechts abschließend */
+    justify-content: flex-end;
 }
 
-    /* Button (optional Styling) */
     .iframe-controls button {
         background-color: #2a7ae2;
         color: #fff;
@@ -309,3 +275,23 @@ pre {
         .iframe-controls button:hover {
             background-color: #1f63c0;
         }
+
+/* ========== Responsiv ========== */
+@media (max-width: 900px) {
+    .container {
+        flex-direction: column;
+    }
+
+    #sideMenu {
+        position: static;
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0,1fr));
+        gap: 0.5rem;
+    }
+
+        #sideMenu .side-link {
+            margin-bottom: 0;
+            text-align: center;
+        }
+}

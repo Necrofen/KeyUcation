@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KeyUcation</title>
-  <link rel="stylesheet" href="style.css">
+  <!-- Root-relative Pfade, damit /welcome etc. nichts bricht -->
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
   <header>
@@ -13,17 +14,20 @@
     </div>
     <div class="header-right">
       <div class="logo-container">
-        <img src="logo.png" alt="KeyUcation Logo">
+        <img src="/logo.png" alt="KeyUcation Logo">
       </div>
     </div>
   </header>
+
   <div class="container">
     <aside id="sideMenu">
-      <button class="side-link active" data-target="explanationSection">Willkommen</button>
-      <button class="side-link" data-target="uploadSection">Inhalt hochladen</button>
-      <button class="side-link" data-target="createContentSection">Escape-Room erstellen</button>
-      <button class="side-link" data-target="playSection">Spielen</button>
+      <!-- Links mit href zu “schönen” Routen -->
+      <a class="side-link active" data-target="explanationSection" href="/welcome">Willkommen</a>
+      <a class="side-link" data-target="uploadSection" href="/upload">Inhalt hochladen</a>
+      <a class="side-link" data-target="createContentSection" href="/create">Escape-Room erstellen</a>
+      <a class="side-link" data-target="playSection" href="/play">Spielen</a>
     </aside>
+
     <main id="mainContent">
       <!-- Erklärung Section -->
       <section id="explanationSection" class="sidecontent active">
@@ -58,7 +62,7 @@
         <div class="iframe-container">
           <iframe
             id="playFrame"
-            src="Spiele/V9_WebGL/index.html"
+            src="/Spiele/V9_WebGL/index.html"
             allow="fullscreen"
             allowfullscreen>
           </iframe>
@@ -75,7 +79,7 @@
         <div class="iframe-container">
           <iframe
             id="createFrame"
-            src="Spiele/V5_WebGL/index.html"
+            src="/Spiele/V5_WebGL/index.html"
             allow="fullscreen"
             allowfullscreen>
           </iframe>
@@ -86,6 +90,8 @@
       </section>
     </main>
   </div>
-  <script src="script.js"></script>
+
+  <script src="/script.js"></script>
+  <noscript>Bitte JavaScript aktivieren, um die Seite zu nutzen.</noscript>
 </body>
 </html>

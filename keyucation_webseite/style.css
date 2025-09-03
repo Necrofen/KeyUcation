@@ -263,52 +263,43 @@ pre {
 
 /* --- Viewport-Offsets für Scrollfreiheit (anpassbar) --- */
 :root {
-    /* geschätzter Platz für Header + Überschrift/Absatz im Section */
-    --header-space: 120px; /* Höhe deiner Kopfzeile inkl. Padding */
-    --section-overhead: 120px; /* H2 + P + Abstände in der Section */
+    --header-space: 120px; /* Höhe Header inkl. Padding */
+    --section-overhead: 120px; /* H2 + Text + Abstände im Abschnitt */
 }
 
-/* WebGL Iframe Container */
+/* WebGL-Container: hat die Endbreite der Bühne (16:9), zentriert */
 .iframe-container {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    margin: 1rem 0;
-    width: 100%;
+    gap: 0.75rem; /* Abstand zwischen Iframe und Button */
+    /* Breite wird aus verfügbarer Höhe abgeleitet => garantiert 16:9 ohne Scrollen */
+    width: min(100%, calc((100dvh - var(--header-space) - var(--section-overhead)) * (16/9)));
+    margin: 1rem auto; /* zentriert im Content */
 }
 
-    /* 16:9, responsive; Höhe so begrenzt, dass kein Scrollen nötig ist */
+    /* Iframe: füllt die Containerbreite, behält 16:9 */
     .iframe-container iframe {
-        /* Verhältnis sichern */
         aspect-ratio: 16 / 9;
-        /* Breite: so groß wie möglich innerhalb des Contents */
         width: 100%;
-        max-width: 100%;
-        /* Höhe: nie größer als die verfügbare Viewport-Höhe abzüglich Header/Overhead */
         height: auto;
-        max-height: calc(100dvh - var(--header-space) - var(--section-overhead));
-        /* Falls die Breite limitierend ist, bleibt Höhe auto; falls die Höhe
-     limitierend ist, schrumpft die Breite automatisch durch aspect-ratio. */
         background: #231F20;
         border: none;
         display: block;
     }
 
-/* Controls direkt darunter, rechts ausgerichtet */
+/* Controls: exakt gleiche Breite wie das Iframe, Button rechts bündig */
 .iframe-controls {
     width: 100%;
     display: flex;
-    justify-content: flex-end;
-    margin-top: 0.5rem;
-    gap: 0.5rem;
+    justify-content: flex-end; /* rechts abschließend */
 }
 
-    /* optional – hübscher Button */
+    /* Button (optional Styling) */
     .iframe-controls button {
         background-color: #2a7ae2;
         color: #fff;
         border: none;
-        padding: 0.45rem 0.75rem;
+        padding: 0.45rem 0.9rem;
         font-size: 0.9rem;
         border-radius: 6px;
         cursor: pointer;

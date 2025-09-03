@@ -260,3 +260,25 @@ pre {
   word-break: break-all;
   font-size: 0.8rem;
 }
+
+/* WebGL Iframe Container */
+.iframe-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* iframe mittig */
+  margin: 1rem 0;
+}
+
+.iframe-container iframe {
+  width: 900px;
+  height: 600px;
+  border: none;
+  display: block;
+}
+
+.iframe-controls {
+  width: 900px;              /* gleiche Breite wie das Iframe */
+  display: flex;
+  justify-content: flex-end; /* Button nach rechts */
+  margin-top: 0.5rem;
+}

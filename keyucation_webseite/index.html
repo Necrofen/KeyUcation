@@ -22,7 +22,6 @@
       <button class="side-link active" data-target="explanationSection">Erklärung</button>
       <button class="side-link" data-target="uploadSection">Inhalt hochladen</button>
       <button class="side-link" data-target="playSection">Spielen</button>
-      <!-- NEU -->
       <button class="side-link" data-target="createContentSection">Inhalte erstellen</button>
     </aside>
     <main id="mainContent">
@@ -56,32 +55,34 @@
       <section id="playSection" class="sidecontent">
         <h2>Spielen</h2>
         <p>Hier können Sie das interaktive WebGL-Spiel direkt auf der Webseite ausführen.</p>
-        <div class="form-row" style="justify-content: flex-end;">
-          <button id="playFullscreenBtn" type="button" aria-controls="playFrame">Vollbild</button>
+        <div class="iframe-container">
+          <iframe
+            id="playFrame"
+            src="Spiele/V9_WebGL/index.html"
+            allow="fullscreen"
+            allowfullscreen>
+          </iframe>
+          <div class="iframe-controls">
+            <button id="playFullscreenBtn" type="button" aria-controls="playFrame">Vollbild</button>
+          </div>
         </div>
-        <iframe
-          id="playFrame"
-          src="Spiele/V9_WebGL/index.html"
-          style="width: 900px; height: 600px; border: none;"
-          allow="fullscreen"
-          allowfullscreen>
-        </iframe>
       </section>
 
-      <!-- Inhalte erstellen (NEU, analog zu „Spielen“) -->
+      <!-- Inhalte erstellen Section -->
       <section id="createContentSection" class="sidecontent">
         <h2>Inhalte erstellen</h2>
         <p>Hier können Sie die Autoren-/Editor-Anwendung als WebGL laden.</p>
-        <div class="form-row" style="justify-content: flex-end;">
-          <button id="createFullscreenBtn" type="button" aria-controls="createFrame">Vollbild</button>
+        <div class="iframe-container">
+          <iframe
+            id="createFrame"
+            src="Spiele/V5_WebGL/index.html"
+            allow="fullscreen"
+            allowfullscreen>
+          </iframe>
+          <div class="iframe-controls">
+            <button id="createFullscreenBtn" type="button" aria-controls="createFrame">Vollbild</button>
+          </div>
         </div>
-        <iframe
-          id="createFrame"
-          src="Spiele/Configurator/index.html"
-          style="width: 900px; height: 600px; border: none;"
-          allow="fullscreen"
-          allowfullscreen>
-        </iframe>
       </section>
     </main>
   </div>

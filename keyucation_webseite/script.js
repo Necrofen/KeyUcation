@@ -121,4 +121,51 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+
+  /* -------- Vollbild-Funktionalität für WebGL-Frames -------- */
+
+  /**
+   * Bindet einen Vollbild-Button an ein Element (z.B. <iframe>).
+   * @param {string} buttonId  ID des Buttons
+   * @param {string} elementId ID des Elements, das in den Vollbildmodus soll
+   */
+  function setupFullscreen(buttonId, elementId) {
+    const btn = document.getElementById(buttonId);
+    const el  = document.getElementById(elementId);
+    if (!btn || !el) return;
+
+    // Optional: kurze Tastatur-Accessibility
+    btn.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        btn.click();
+      }
+    });
+
+    btn.addEventListener('click', async () => {
+      try {
+        // Toggle: wenn bereits Vollbild aktiv, dann beenden
+        if (document.fullscreenElement) {
+          await document.exitFullscreen();
+          return;
+        }
+        // Für iframes reicht requestFullscreen() am Iframe selbst
+        await el.requestFullscreen();
+      } catch (err) {
+        console.error('Fullscreen-Fehler:', err);
+        alert('Vollbildmodus ist in diesem Browser/Umfeld nicht verfügbar.');
+      }
+    });
+
+    // Button-Text dynamisch anpassen
+    document.addEventListener('fullscreenchange', () => {
+      const active = !!document.fullscreenElement;
+      btn.textContent = active ? 'Vollbild beenden' : 'Vollbild';
+      btn.setAttribute('aria-pressed', String(active));
+    });
+  }
+
+  // Zwei Einbettungen anbinden:
+  setupFullscreen('playFullscreenBtn',   'playFrame');
+  setupFullscreen('createFullscreenBtn', 'createFrame');
 });

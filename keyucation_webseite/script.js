@@ -41,6 +41,49 @@ function navigateTo(path, push = true) {
     if (push) history.pushState({ path }, "", path);
 }
 
+/* ---------------------------
+   NEU: Unity-Instanz sauber neu starten
+   --------------------------- */
+
+/**
+ * Ersetzt ein Unity-<iframe> durch ein frisches (Heap wird freigegeben).
+ * - Merkt sich die Original-URL in data-src (damit wir immer dieselbe Basis laden).
+ * - Fügt einen Cache-Buster (?t=timestamp) hinzu.
+ */
+function resetUnityIframeById(id) {
+    const oldIframe = document.getElementById(id);
+    if (!oldIframe) return;
+
+    // Original-URL einmalig merken
+    if (!oldIframe.dataset.src) {
+        const original = oldIframe.getAttribute('src') || "";
+        if (original) {
+            oldIframe.dataset.src = original;
+        } else {
+            // Falls noch gar kein src gesetzt war (Lazy), hier abbrechen
+            return;
+        }
+    }
+
+    // Basis ermitteln und Cache-Buster anhängen
+    const base = oldIframe.dataset.src.split("#")[0];
+    const sep = base.includes("?") ? "&" : "?";
+    const freshUrl = `${base}${sep}t=${Date.now()}`;
+
+    // Frisches iframe erzeugen (Attribute bleiben erhalten)
+    const newIframe = oldIframe.cloneNode(false);
+    newIframe.src = freshUrl;
+
+    // Altes iframe ersetzen => Unity-Instanz wird entladen, WASM-Heap freigegeben
+    oldIframe.parentNode.replaceChild(newIframe, oldIframe);
+}
+
+/** Entscheidet, ob/was resettet werden soll, basierend auf der Ziel-Section. */
+function maybeResetIframeForTarget(sectionId) {
+    if (sectionId === "playSection") resetUnityIframeById("playFrame");
+    if (sectionId === "createContentSection") resetUnityIframeById("createFrame");
+}
+
 // Klicks auf Sidebar-Links abfangen (interne Navigation)
 document.addEventListener("click", (e) => {
     const a = e.target.closest("a.side-link");
@@ -49,6 +92,11 @@ document.addEventListener("click", (e) => {
     const url = new URL(a.href, location.origin);
     if (url.origin === location.origin) {
         e.preventDefault();
+
+        // NEU: Beim Aufruf der Iframe-Sections immer hart resetten
+        const targetId = a.dataset.target;
+        maybeResetIframeForTarget(targetId);
+
         navigateTo(url.pathname, true);
     }
 });
@@ -171,5 +219,9 @@ window.addEventListener("DOMContentLoaded", () => {
 // Browser Zurück/Vorwärts
 window.addEventListener("popstate", (e) => {
     const path = e.state?.path || location.pathname;
+    // NEU: Auch bei History-Navigation die Unity-Frames frisch starten
+    const sectionId = routes[path] || routes["/"];
+    maybeResetIframeForTarget(sectionId);
+
     navigateTo(path, false);
 });

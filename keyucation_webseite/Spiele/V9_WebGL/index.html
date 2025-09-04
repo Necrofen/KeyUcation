@@ -58,7 +58,6 @@
       </div>
     </div>
 
-    <input type="file" id="fileInput" style="display:none" accept=".json" />
     <button id="uploadButton">Datei hochladen</button>
 
     <script>
@@ -133,13 +132,13 @@
 
       loadingBar.style.display = "block";
 
-      // ---- Fullscreen-Helfer (ohne Doppelauslösung) ----
+      // ---- Fullscreen-Helfer (mit Fallback) ----
       function isFullscreen() {
         return !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
       }
 
       function tryEnterFullscreen() {
-        if (isFullscreen()) return Promise.resolve(); // schon im Vollbild
+        if (isFullscreen()) return Promise.resolve();
         try { if (unityInstance && unityInstance.SetFullscreen) unityInstance.SetFullscreen(1); } catch(e) {}
         var el = container || canvas;
         var rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
@@ -151,7 +150,7 @@
 
       let gestureListenerActive = false;
       function scheduleGestureFullscreen() {
-        if (gestureListenerActive || isFullscreen()) return; // nur, wenn nicht bereits Vollbild
+        if (gestureListenerActive || isFullscreen()) return;
         gestureListenerActive = true;
 
         const cleanup = () => {
@@ -162,13 +161,10 @@
           gestureListenerActive = false;
         };
 
-        const onFsChange = () => {
-          if (isFullscreen()) cleanup(); // Listener sofort entfernen, sobald Vollbild erreicht
-        };
+        const onFsChange = () => { if (isFullscreen()) cleanup(); };
 
         const onGesture = () => {
           cleanup();
-          // Nur versuchen, wenn nach dem Klick noch nicht Vollbild
           if (!isFullscreen()) tryEnterFullscreen();
         };
 
@@ -179,7 +175,7 @@
 
         unityShowBanner("Klicken oder Taste drücken, um in den Vollbildmodus zu wechseln.", "warning");
       }
-      // ---------------------------------------------------
+      // ------------------------------------------
 
       var script = document.createElement("script");
       script.src = loaderUrl;
@@ -198,33 +194,22 @@
       };
       document.body.appendChild(script);
 
-      // Datei-Upload -> Inhalt an Unity + genau ein Fullscreen-Versuch
-      document.getElementById('fileInput').addEventListener('change', function (event) {
-        var file = event.target.files[0];
-        if (!file) return;
-        var reader = new FileReader();
-        reader.onload = function (e) {
-          var fileContent = e.target.result;
-          if (unityInstance) {
-            unityInstance.SendMessage('Manager', 'LadeJsonDatei', fileContent);
-            document.getElementById('uploadButton').style.display = 'none';
-
-            // 1) Einmal versuchen
-            Promise.resolve(tryEnterFullscreen()).catch(() => {}).finally(() => {
-              // 2) Nur falls NICHT im Vollbild, Fallback über nächste Geste aktivieren
-              if (!isFullscreen()) {
-                scheduleGestureFullscreen();
-              }
-            });
-          } else {
-            console.error("Unity-Instance ist noch nicht bereit.");
-          }
-        };
-        reader.readAsText(file);
-      });
-
+      // Upload-Button: startet den Unity-internen Uploader + versucht Vollbild
       document.getElementById('uploadButton').addEventListener('click', function () {
-        document.getElementById('fileInput').click();
+        if (!unityInstance) {
+          console.error("Unity-Instance ist noch nicht bereit.");
+          return;
+        }
+        // Ruft in C# FileUpload.LadeJsonDateiAuto() auf
+        unityInstance.SendMessage('Manager', 'LadeJsonDateiAuto', '');
+
+        // 1) Einmal aktiv versuchen, Vollbild zu setzen
+        Promise.resolve(tryEnterFullscreen()).catch(() => {}).finally(() => {
+          // 2) Falls blockiert, Fallback über nächste Benutzer-Geste aktivieren
+          if (!isFullscreen()) {
+            scheduleGestureFullscreen();
+          }
+        });
       });
     </script>
   </body>

@@ -22,22 +22,6 @@
         height: 100%;
       }
       #unity-canvas { display: block; }
-      #uploadButton {
-        position: fixed;
-        top: 50%; left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 10;
-        display: none;
-        padding: 40px 70px;
-        font-size: 22px;
-        font-weight: bold;
-        border-radius: 10px;
-        cursor: pointer;
-        background-color: #4CAF50;
-        color: white; border: none;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-      }
-      #uploadButton:hover { background-color: #45a049; }
     </style>
   </head>
   <body>
@@ -57,8 +41,6 @@
         <div id="unity-build-title">EduScape</div>
       </div>
     </div>
-
-    <button id="uploadButton">Datei hochladen</button>
 
     <script>
       var container = document.querySelector("#unity-container");
@@ -186,31 +168,12 @@
           unityInstance = instance;
           loadingBar.style.display = "none";
           fullscreenButton.onclick = () => unityInstance.SetFullscreen(1);
-          document.getElementById('uploadButton').style.display = 'block';
           resizeCanvas();
         }).catch((message) => {
           alert(message);
         });
       };
       document.body.appendChild(script);
-
-      // Upload-Button: startet den Unity-internen Uploader + versucht Vollbild
-      document.getElementById('uploadButton').addEventListener('click', function () {
-        if (!unityInstance) {
-          console.error("Unity-Instance ist noch nicht bereit.");
-          return;
-        }
-        // Ruft in C# FileUpload.LadeJsonDateiAuto() auf
-        unityInstance.SendMessage('Manager', 'LadeJsonDateiAuto', '');
-
-        // 1) Einmal aktiv versuchen, Vollbild zu setzen
-        Promise.resolve(tryEnterFullscreen()).catch(() => {}).finally(() => {
-          // 2) Falls blockiert, Fallback über nächste Benutzer-Geste aktivieren
-          if (!isFullscreen()) {
-            scheduleGestureFullscreen();
-          }
-        });
-      });
     </script>
   </body>
 </html>

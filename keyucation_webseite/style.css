@@ -295,3 +295,24 @@ pre {
             text-align: center;
         }
 }
+
+iframe:fullscreen,
+.iframe-container:fullscreen iframe {
+  width: 100vw !important;
+  height: 100vh !important;
+  aspect-ratio: auto !important;
+  max-width: none !important;
+  border: none !important;
+  display: block;
+}
+
+/* Safari/WebKit Präfixe */
+iframe:-webkit-full-screen,
+.iframe-container:-webkit-full-screen iframe {
+  width: 100vw !important;
+  height: 100vh !important;
+  aspect-ratio: auto !important;
+  max-width: none !important;
+  border: none !important;
+  display: block;
+}

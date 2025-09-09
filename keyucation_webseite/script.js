@@ -1,5 +1,5 @@
 /*
- * KeyUcation SPA Router + Upload & Fullscreen
+ * KeyUcation SPA Router + Upload & Fullscreen (verbessert)
  */
 
 // ---- Mini-Router für schöne URLs ----
@@ -53,11 +53,90 @@ document.addEventListener("click", (e) => {
     }
 });
 
-// Initial: richtige Section anhand der URL anzeigen
+// ---- Fullscreen Helpers (Prefix-Fallbacks + Utilities) ----
+function enterFullscreen(el) {
+    const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+    return rfs ? rfs.call(el) : Promise.resolve();
+}
+function exitFullscreen() {
+    const ex = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+    return ex ? ex.call(document) : Promise.resolve();
+}
+function isFullscreen() {
+    return !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
+}
+function getFullscreenElement() {
+    return document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement || null;
+}
+
+// In das aktuell im Vollbild befindliche iFrame ein Resize-Ereignis „stupsen“,
+// damit Unitys resizeCanvas() sofort feuert.
+function pokeActiveIframeToResize() {
+    const fsEl = getFullscreenElement();
+    if (fsEl && fsEl.tagName === "IFRAME") {
+        try { fsEl.contentWindow?.dispatchEvent(new Event("resize")); } catch (_) {}
+        // Falls Unity global verfügbar ist:
+        try { fsEl.contentWindow?.unityInstance?.Module?.setCanvasSize?.(fsEl.contentWindow.innerWidth, fsEl.contentWindow.innerHeight, true); } catch (_) {}
+    }
+}
+
+// ---- Vollbild-Buttons für WebGL-Frames ----
+function setupFullscreen(buttonId, elementId) {
+    const btn = document.getElementById(buttonId);
+    const el = document.getElementById(elementId);
+    if (!btn || !el) return;
+
+    // Tastaturbedienung (Enter/Space)
+    btn.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            btn.click();
+        }
+    });
+
+    btn.addEventListener("click", async () => {
+        try {
+            if (isFullscreen()) {
+                await exitFullscreen();
+                return;
+            }
+            // iFrame selbst in den Vollbildmodus (bevorzugt)
+            await enterFullscreen(el);
+
+            // Sofortiges Resize ins iFrame schicken (für Browser, die das Resize verzögern)
+            try { el.contentWindow?.dispatchEvent(new Event("resize")); } catch (_) {}
+
+            // Optional Unity-intern: falls die API rausgereicht ist
+            try { el.contentWindow?.unityInstance?.SetFullscreen?.(1); } catch (_) {}
+        } catch (err) {
+            console.error("Fullscreen-Fehler:", err);
+            alert("Vollbildmodus ist in diesem Browser/Umfeld nicht verfügbar.");
+        }
+    });
+}
+
+// Je nach Fullscreen-Status Button-Text anpassen + Unity anstupsen
+function updateFullscreenUI() {
+    const active = isFullscreen();
+    const text = active ? "Vollbild beenden" : "Vollbild";
+    ["playFullscreenBtn", "createFullscreenBtn"].forEach(id => {
+        const b = document.getElementById(id);
+        if (!b) return;
+        b.textContent = text;
+        b.setAttribute("aria-pressed", String(active));
+    });
+    pokeActiveIframeToResize();
+}
+
+["fullscreenchange", "webkitfullscreenchange", "msfullscreenchange"].forEach(ev =>
+    document.addEventListener(ev, updateFullscreenUI, true)
+);
+
+// ---- Initialisierung ----
 window.addEventListener("DOMContentLoaded", () => {
     navigateTo(location.pathname, false);
 
-    // ---- Upload-Feature (dein bestehender Code, leicht gestrafft) ----
+    // ---- Upload-Feature ----
     const samples = [];
     const sampleListElem = document.getElementById("sampleList");
     const sampleTitleInput = document.getElementById("sampleTitle");
@@ -134,39 +213,7 @@ window.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // ---- Vollbild-Buttons für WebGL-Frames ----
-    function setupFullscreen(buttonId, elementId) {
-        const btn = document.getElementById(buttonId);
-        const el = document.getElementById(elementId);
-        if (!btn || !el) return;
-
-        btn.addEventListener("keydown", (e) => {
-            if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                btn.click();
-            }
-        });
-
-        btn.addEventListener("click", async () => {
-            try {
-                if (document.fullscreenElement) {
-                    await document.exitFullscreen();
-                    return;
-                }
-                await el.requestFullscreen();
-            } catch (err) {
-                console.error("Fullscreen-Fehler:", err);
-                alert("Vollbildmodus ist in diesem Browser/Umfeld nicht verfügbar.");
-            }
-        });
-
-        document.addEventListener("fullscreenchange", () => {
-            const active = !!document.fullscreenElement;
-            btn.textContent = active ? "Vollbild beenden" : "Vollbild";
-            btn.setAttribute("aria-pressed", String(active));
-        });
-    }
-
+    // ---- Vollbild-Buttons an die IFrames anschließen ----
     setupFullscreen("playFullscreenBtn", "playFrame");
     setupFullscreen("createFullscreenBtn", "createFrame");
 });

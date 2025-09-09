@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Unity WebGL Player | EduScape</title>
-    <link rel="shortcut icon" href="TemplateData/favicon.ico" />
-    <link rel="stylesheet" href="TemplateData/style.css" />
+    <title>KeyUcation Generator</title>
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes" />
     <style>
+      /* Vollbild, keine Scrollbars, dunkler Hintergrund wie in Datei #1 */
       html, body {
         margin: 0;
         padding: 0;
@@ -21,159 +21,128 @@
         width: 100%;
         height: 100%;
       }
-      #unity-canvas { display: block; }
+      #unity-canvas {
+        display: block; /* verhindert extra whitespace */
+        /* tatsächliche Größe setzen wir per JS in Abhängigkeit von DPR */
+      }
+      /* optional: Platz für Warnmeldungen (falls benötigt) */
+      #unity-warning {
+        position: absolute;
+        top: 10px; left: 10px; right: 10px;
+        z-index: 20;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        display: none;
+      }
     </style>
   </head>
   <body>
-    <div id="unity-container" class="unity-desktop">
+    <div id="unity-container">
       <canvas id="unity-canvas" tabindex="-1"></canvas>
-
-      <div id="unity-loading-bar">
-        <div id="unity-logo"></div>
-        <div id="unity-progress-bar-empty">
-          <div id="unity-progress-bar-full"></div>
-        </div>
-      </div>
       <div id="unity-warning"></div>
-      <div id="unity-footer">
-        <div id="unity-webgl-logo"></div>
-        <div id="unity-fullscreen-button"></div>
-        <div id="unity-build-title">EduScape</div>
-      </div>
     </div>
 
-    <script>
-      var container = document.querySelector("#unity-container");
-      var canvas = document.querySelector("#unity-canvas");
-      var loadingBar = document.querySelector("#unity-loading-bar");
-      var progressBarFull = document.querySelector("#unity-progress-bar-full");
-      var fullscreenButton = document.querySelector("#unity-fullscreen-button");
-      var warningBanner = document.querySelector("#unity-warning");
+   <script src="Build/V9_WebGL.loader.js"></script>
+<script>
+  // DOM-Referenzen (falls vorhanden)
+  const container       = document.getElementById("unity-container");
+  const canvas          = document.getElementById("unity-canvas");
+  const loadingBar      = document.getElementById("unity-loading-bar");
+  const progressBarFull = document.getElementById("unity-progress-bar-full");
+  const fullscreenBtn   = document.getElementById("unity-fullscreen-button");
+  const warningBanner   = document.getElementById("unity-warning");
 
-      function unityShowBanner(msg, type) {
-        function updateBannerVisibility() {
-          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
-        }
-        var div = document.createElement('div');
-        div.innerHTML = msg;
-        warningBanner.appendChild(div);
-        if (type == 'error') div.style = 'background: red; padding: 10px;';
-        else {
-          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
-          setTimeout(function () {
-            if (div.parentNode) warningBanner.removeChild(div);
-            updateBannerVisibility();
-          }, 5000);
-        }
-        updateBannerVisibility();
+  // (Optional) Warnbanner wie im V5-Script
+  function unityShowBanner(msg, type) {
+    if (!warningBanner) return;
+    const div = document.createElement("div");
+    div.innerHTML = msg;
+    div.style.padding = "10px";
+    div.style.borderRadius = "6px";
+    if (type === "error") { div.style.background = "red"; div.style.color = "white"; }
+    else { div.style.background = "yellow"; }
+    warningBanner.appendChild(div);
+    warningBanner.style.display = "block";
+    if (type !== "error") setTimeout(() => {
+      if (div.parentNode) warningBanner.removeChild(div);
+      warningBanner.style.display = warningBanner.children.length ? "block" : "none";
+    }, 5000);
+  }
+
+  let unityInstance = null;
+
+  // Wie in V5: Canvas auf Viewport + DPR bringen und Unity-Canvas-Size setzen
+  function resizeCanvas() {
+    const w = Math.max(0, window.innerWidth);
+    const h = Math.max(0, window.innerHeight);
+
+    // CSS-Größe (logisch)
+    canvas.style.width  = w + "px";
+    canvas.style.height = h + "px";
+
+    // Physische Pixel (für Schärfe)
+    const dpr = window.devicePixelRatio || 1;
+    const pw  = Math.floor(w * dpr);
+    const ph  = Math.floor(h * dpr);
+
+    if (canvas.width !== pw || canvas.height !== ph) {
+      canvas.width  = pw;
+      canvas.height = ph;
+      if (unityInstance?.Module?.setCanvasSize) {
+        unityInstance.Module.setCanvasSize(pw, ph, true);
       }
+    }
+  }
+  window.addEventListener("resize", resizeCanvas);
 
-      var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/V9_WebGL.loader.js";
-      var config = {
-        dataUrl: buildUrl + "/V9_WebGL.data",
-        frameworkUrl: buildUrl + "/V9_WebGL.framework.js",
-        codeUrl: buildUrl + "/V9_WebGL.wasm",
-        streamingAssetsUrl: "StreamingAssets",
-        companyName: "Bockerl Games",
-        productName: "EduScape",
-        productVersion: "0.1",
-        showBanner: unityShowBanner,
-        devicePixelRatio: window.devicePixelRatio || 1
-      };
+  // Optional: Ladebalken zeigen
+  if (loadingBar) loadingBar.style.display = "block";
 
-      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        var meta = document.createElement('meta');
-        meta.name = 'viewport';
-        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-        document.getElementsByTagName('head')[0].appendChild(meta);
-        container.className = "unity-mobile";
-        canvas.className = "unity-mobile";
-      }
+  // Unity-Config wie üblich
+  const buildUrl = "Build";
+  const config = {
+    dataUrl:          buildUrl + "/V9_WebGL.data",
+    frameworkUrl:     buildUrl + "/V9_WebGL.framework.js",
+    codeUrl:          buildUrl + "/V9_WebGL.wasm",
+    streamingAssetsUrl: "StreamingAssets",
+    companyName:      "Bockerl Games",
+    productName:      "EduScape",
+    productVersion:   "0.1",
+    showBanner:       unityShowBanner,
+    devicePixelRatio: window.devicePixelRatio || 1
+    // matchWebGLToCanvasSize: false, // Optional, wenn DOM- und Rendergröße getrennt werden sollen
+  };
 
-      var unityInstance = null;
+  // Unity starten (analog V5)
+  createUnityInstance(canvas, config, (progress) => {
+    if (progressBarFull) progressBarFull.style.width = (100 * progress) + "%";
+  }).then((instance) => {
+    unityInstance = instance;
+    if (loadingBar) loadingBar.style.display = "none";
+    resizeCanvas(); // nach Init sicherstellen
 
-      function resizeCanvas() {
-        var w = Math.max(0, window.innerWidth);
-        var h = Math.max(0, window.innerHeight);
-        canvas.style.width  = w + "px";
-        canvas.style.height = h + "px";
-        var dpr = window.devicePixelRatio || 1;
-        var pw = Math.floor(w * dpr);
-        var ph = Math.floor(h * dpr);
-        if (canvas.width !== pw || canvas.height !== ph) {
-          canvas.width  = pw;
-          canvas.height = ph;
-          if (unityInstance && unityInstance.Module && unityInstance.Module.setCanvasSize) {
-            unityInstance.Module.setCanvasSize(pw, ph, true);
+    // Interner Fullscreen-Button (falls im Template vorhanden)
+    if (fullscreenBtn) {
+      fullscreenBtn.onclick = async () => {
+        try {
+          const el  = container || canvas;
+          const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+          if (rfs) {
+            await rfs.call(el);
+          } else {
+            // Fallback: Unity-intern (nicht auf allen Browsern nötig)
+            try { unityInstance.SetFullscreen?.(1); } catch(_) {}
           }
-        }
-      }
-      window.addEventListener('resize', resizeCanvas);
-      resizeCanvas();
-
-      loadingBar.style.display = "block";
-
-      // ---- Fullscreen-Helfer (mit Fallback) ----
-      function isFullscreen() {
-        return !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
-      }
-
-      function tryEnterFullscreen() {
-        if (isFullscreen()) return Promise.resolve();
-        try { if (unityInstance && unityInstance.SetFullscreen) unityInstance.SetFullscreen(1); } catch(e) {}
-        var el = container || canvas;
-        var rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
-        if (rfs) {
-          return rfs.call(el).catch(()=>{});
-        }
-        return Promise.resolve();
-      }
-
-      let gestureListenerActive = false;
-      function scheduleGestureFullscreen() {
-        if (gestureListenerActive || isFullscreen()) return;
-        gestureListenerActive = true;
-
-        const cleanup = () => {
-          document.removeEventListener('pointerdown', onGesture, true);
-          document.removeEventListener('keydown', onGesture, true);
-          document.removeEventListener('fullscreenchange', onFsChange, true);
-          document.removeEventListener('webkitfullscreenchange', onFsChange, true);
-          gestureListenerActive = false;
-        };
-
-        const onFsChange = () => { if (isFullscreen()) cleanup(); };
-
-        const onGesture = () => {
-          cleanup();
-          if (!isFullscreen()) tryEnterFullscreen();
-        };
-
-        document.addEventListener('pointerdown', onGesture, true);
-        document.addEventListener('keydown', onGesture, true);
-        document.addEventListener('fullscreenchange', onFsChange, true);
-        document.addEventListener('webkitfullscreenchange', onFsChange, true);
-
-        unityShowBanner("Klicken oder Taste drücken, um in den Vollbildmodus zu wechseln.", "warning");
-      }
-      // ------------------------------------------
-
-      var script = document.createElement("script");
-      script.src = loaderUrl;
-      script.onload = () => {
-        createUnityInstance(canvas, config, (progress) => {
-          progressBarFull.style.width = (100 * progress) + "%";
-        }).then((instance) => {
-          unityInstance = instance;
-          loadingBar.style.display = "none";
-          fullscreenButton.onclick = () => unityInstance.SetFullscreen(1);
+          // Direkt danach auf neue Größe resizen
           resizeCanvas();
-        }).catch((message) => {
-          alert(message);
-        });
+        } catch (_) { /* ignore */ }
       };
-      document.body.appendChild(script);
-    </script>
+    }
+  }).catch((message) => {
+    alert(message);
+  });
+
+  // Erste Größenanpassung sofort
+  resizeCanvas();
+</script>
   </body>
 </html>

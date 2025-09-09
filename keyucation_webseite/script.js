@@ -1,5 +1,5 @@
 /*
- * KeyUcation SPA Router + Upload & Fullscreen (robuste Toggle-Logik)
+ * KeyUcation SPA Router + Upload & Fullscreen (Container-Fullscreen, robust)
  */
 
 // ---- Mini-Router für schöne URLs ----
@@ -52,7 +52,7 @@ document.addEventListener("click", (e) => {
   }
 });
 
-// ---------- Fullscreen: Host-steuert-alles ----------
+// ---------- Fullscreen: Host steuert den .iframe-container ----------
 function enterFullscreen(el) {
   const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
   return rfs ? rfs.call(el) : Promise.resolve();
@@ -68,20 +68,28 @@ function getFullscreenElement() {
   return document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement || null;
 }
 
-function pokeActiveIframeToResize() {
+// Gibt das <iframe> zurück, das innerhalb des aktiven Fullscreen-Elements steckt
+function getActiveIframeInFullscreen() {
   const fsEl = getFullscreenElement();
-  if (fsEl && fsEl.tagName === "IFRAME") {
-    try { fsEl.contentWindow?.dispatchEvent(new Event("resize")); } catch (_) {}
-    try {
-      const cw  = fsEl.contentWindow;
-      const dpr = cw.devicePixelRatio || 1;
-      cw?.unityInstance?.Module?.setCanvasSize?.(
-        Math.floor(cw.innerWidth * dpr),
-        Math.floor(cw.innerHeight * dpr),
-        true
-      );
-    } catch (_) {}
-  }
+  if (!fsEl) return null;
+  if (fsEl.tagName === "IFRAME") return fsEl;
+  return fsEl.querySelector?.("iframe") || null;
+}
+
+// iFrame nach Fullscreen-Wechsel sofort zum Resize „anstupsen“
+function pokeActiveIframeToResize() {
+  const iframe = getActiveIframeInFullscreen();
+  if (!iframe) return;
+  try { iframe.contentWindow?.dispatchEvent(new Event("resize")); } catch (_) {}
+  try {
+    const cw  = iframe.contentWindow;
+    const dpr = cw.devicePixelRatio || 1;
+    cw?.unityInstance?.Module?.setCanvasSize?.(
+      Math.floor(cw.innerWidth * dpr),
+      Math.floor(cw.innerHeight * dpr),
+      true
+    );
+  } catch (_) {}
 }
 
 function updateFullscreenUI() {
@@ -96,27 +104,28 @@ function updateFullscreenUI() {
   pokeActiveIframeToResize();
 }
 
+// Reagiere auf Fullscreen-Events (alle Prefixe)
 ["fullscreenchange", "webkitfullscreenchange", "msfullscreenchange"].forEach((ev) =>
   document.addEventListener(ev, updateFullscreenUI, true)
 );
 
-// ESC zum Beenden erlauben
+// ESC zum Beenden (funktioniert auch im Fullscreen, wenn Event am Host ankommt)
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && isFullscreen()) {
-    // user-gesture kontext vorhanden → exit ist erlaubt
     exitFullscreen().catch(() => {});
   }
 });
 
-// Buttons steuern immer das verlinkte iframe; Toggle-Logik ist simpel:
-// wenn schon fullscreen → exit, sonst → enter(iframe)
+// Buttons steuern IMMER den jeweiligen .iframe-container
 function wireFullscreenButton(btnId) {
   const btn = document.getElementById(btnId);
   if (!btn) return;
-  const targetId = btn.getAttribute("aria-controls");
-  const iframe = document.getElementById(targetId);
+  const frameId = btn.getAttribute("aria-controls");
+  const iframe = document.getElementById(frameId);
   if (!iframe) return;
+  const container = iframe.closest(".iframe-container") || iframe.parentElement;
 
+  // Tastaturbedienung
   btn.addEventListener("keydown", (e) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
@@ -129,7 +138,8 @@ function wireFullscreenButton(btnId) {
       if (isFullscreen()) {
         await exitFullscreen();
       } else {
-        await enterFullscreen(iframe);
+        await enterFullscreen(container);
+        // gleich nach Enter das iFrame innen anstupsen
         try { iframe.contentWindow?.dispatchEvent(new Event("resize")); } catch (_) {}
       }
     } catch (err) {
@@ -157,15 +167,17 @@ window.addEventListener("message", async (event) => {
   const sourceIframe = getIframeByWindow(event.source);
   if (!sourceIframe) return;
 
+  const container = sourceIframe.closest(".iframe-container") || sourceIframe.parentElement;
+
   try {
     if (data.action === "toggle") {
       if (isFullscreen()) {
         await exitFullscreen();
       } else {
-        await enterFullscreen(sourceIframe);
+        await enterFullscreen(container);
       }
     } else if (data.action === "enter") {
-      await enterFullscreen(sourceIframe);
+      await enterFullscreen(container);
     } else if (data.action === "exit") {
       await exitFullscreen();
     }

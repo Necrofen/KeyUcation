@@ -296,23 +296,28 @@ pre {
         }
 }
 
-iframe:fullscreen,
-.iframe-container:fullscreen iframe {
+/* Container selbst im Vollbild auf volle Fläche bringen */
+.iframe-container:fullscreen {
   width: 100vw !important;
   height: 100vh !important;
-  aspect-ratio: auto !important;
-  max-width: none !important;
-  border: none !important;
-  display: block;
+  margin: 0 !important;
 }
 
-/* Safari/WebKit Präfixe */
-iframe:-webkit-full-screen,
-.iframe-container:-webkit-full-screen iframe {
+/* WebKit/Safari Präfix */
+.iframe-container:-webkit-full-screen {
   width: 100vw !important;
   height: 100vh !important;
+  margin: 0 !important;
+}
+
+/* Sicherheitshalber: Das iframe im Container soll im Vollbild auch 100% füllen */
+.iframe-container:fullscreen iframe,
+.iframe-container:-webkit-full-screen iframe {
+  width: 100% !important;
+  height: 100% !important;
   aspect-ratio: auto !important;
   max-width: none !important;
+  display: block !important;
   border: none !important;
-  display: block;
 }
+

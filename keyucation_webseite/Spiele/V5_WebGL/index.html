@@ -41,11 +41,10 @@
       <div id="unity-warning"></div>
     </div>
 
-  <script src="Build/V5_WebGL.loader.js"></script>
+<script src="Build/V5_WebGL.loader.js"></script>
 <script>
-  const container = document.getElementById('unity-container');
-  const canvas    = document.getElementById('unity-canvas');
-  const warning   = document.getElementById('unity-warning');
+  const canvas  = document.getElementById('unity-canvas');
+  const warning = document.getElementById('unity-warning');
 
   function unityShowBanner(msg, type) {
     if (!warning) return;
@@ -64,27 +63,65 @@
   }
 
   let unityInstance = null;
+  let resizeTimer   = null;
+  let lostContext   = false;
 
-  function resizeCanvas() {
-    const w = Math.max(0, window.innerWidth);
-    const h = Math.max(0, window.innerHeight);
+  // 1) Context-Loss robust abfangen
+  canvas.addEventListener('webglcontextlost', (e) => {
+    e.preventDefault();        // erlaubt Restore
+    lostContext = true;
+  }, false);
+  canvas.addEventListener('webglcontextrestored', () => {
+    lostContext = false;
+    scheduleResize(50);
+  }, false);
+
+  // 2) Sichere Viewport-Ermittlung
+  function getSafeViewport() {
+    const de = document.documentElement;
+    const ww = Math.max(de.clientWidth,  (window.innerWidth  || 0));
+    const hh = Math.max(de.clientHeight, (window.innerHeight || 0));
+    return { w: ww, h: hh };
+  }
+
+  // 3) Resize – niemals auf 0x0 setzen; bei fraglichen Werten warten
+  function doResize() {
+    const { w, h } = getSafeViewport();
+    if (w < 2 || h < 2 || lostContext) {
+      // Layout noch nicht stabil → später erneut versuchen
+      scheduleResize(50);
+      return;
+    }
+
+    // CSS-Logikgröße
     canvas.style.width  = w + 'px';
     canvas.style.height = h + 'px';
 
+    // Physische Pixel (DPR)
     const dpr = window.devicePixelRatio || 1;
-    const pw  = Math.floor(w * dpr);
-    const ph  = Math.floor(h * dpr);
+    const pw  = Math.max(2, Math.floor(w * dpr));
+    const ph  = Math.max(2, Math.floor(h * dpr));
 
     if (canvas.width !== pw || canvas.height !== ph) {
       canvas.width  = pw;
       canvas.height = ph;
-      if (unityInstance?.Module?.setCanvasSize) {
-        unityInstance.Module.setCanvasSize(pw, ph, true);
-      }
+      try { unityInstance?.Module?.setCanvasSize?.(pw, ph, true); } catch (_) {}
     }
   }
-  window.addEventListener('resize', resizeCanvas);
 
+  function scheduleResize(delay = 0) {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(doResize, delay);
+  }
+
+  // 4) Events: mehrfach und verzögert reagieren
+  window.addEventListener('resize', () => scheduleResize(50));
+  ['fullscreenchange', 'webkitfullscreenchange', 'msfullscreenchange'].forEach(ev =>
+    document.addEventListener(ev, () => { scheduleResize(16); scheduleResize(120); }, true)
+  );
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) scheduleResize(50); });
+
+  // 5) Unity starten
   createUnityInstance(canvas, {
     dataUrl: "Build/V5_WebGL.data",
     frameworkUrl: "Build/V5_WebGL.framework.js",
@@ -97,12 +134,15 @@
     devicePixelRatio: window.devicePixelRatio || 1
   }).then((instance) => {
     unityInstance = instance;
-    resizeCanvas();
+    scheduleResize(0);
+    scheduleResize(120); // nach Layout-Settle noch einmal
   }).catch((message) => {
     alert(message);
   });
 
-  resizeCanvas();
+  // Initial
+  scheduleResize(0);
 </script>
+
   </body>
 </html>

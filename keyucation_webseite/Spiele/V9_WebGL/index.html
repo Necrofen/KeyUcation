@@ -41,9 +41,8 @@
       <div id="unity-warning"></div>
     </div>
 
-   <script src="Build/V9_WebGL.loader.js"></script>
+ <script src="Build/V9_WebGL.loader.js"></script>
 <script>
-  // DOM-Referenzen (falls vorhanden)
   const container       = document.getElementById("unity-container");
   const canvas          = document.getElementById("unity-canvas");
   const loadingBar      = document.getElementById("unity-loading-bar");
@@ -51,7 +50,6 @@
   const fullscreenBtn   = document.getElementById("unity-fullscreen-button");
   const warningBanner   = document.getElementById("unity-warning");
 
-  // (Optional) Warnbanner wie im V5-Script
   function unityShowBanner(msg, type) {
     if (!warningBanner) return;
     const div = document.createElement("div");
@@ -70,16 +68,12 @@
 
   let unityInstance = null;
 
-  // Wie in V5: Canvas auf Viewport + DPR bringen und Unity-Canvas-Size setzen
   function resizeCanvas() {
     const w = Math.max(0, window.innerWidth);
     const h = Math.max(0, window.innerHeight);
-
-    // CSS-Größe (logisch)
     canvas.style.width  = w + "px";
     canvas.style.height = h + "px";
 
-    // Physische Pixel (für Schärfe)
     const dpr = window.devicePixelRatio || 1;
     const pw  = Math.floor(w * dpr);
     const ph  = Math.floor(h * dpr);
@@ -94,54 +88,38 @@
   }
   window.addEventListener("resize", resizeCanvas);
 
-  // Optional: Ladebalken zeigen
   if (loadingBar) loadingBar.style.display = "block";
 
-  // Unity-Config wie üblich
   const buildUrl = "Build";
   const config = {
-    dataUrl:          buildUrl + "/V9_WebGL.data",
-    frameworkUrl:     buildUrl + "/V9_WebGL.framework.js",
-    codeUrl:          buildUrl + "/V9_WebGL.wasm",
+    dataUrl:            buildUrl + "/V9_WebGL.data",
+    frameworkUrl:       buildUrl + "/V9_WebGL.framework.js",
+    codeUrl:            buildUrl + "/V9_WebGL.wasm",
     streamingAssetsUrl: "StreamingAssets",
-    companyName:      "Bockerl Games",
-    productName:      "EduScape",
-    productVersion:   "0.1",
-    showBanner:       unityShowBanner,
-    devicePixelRatio: window.devicePixelRatio || 1
-    // matchWebGLToCanvasSize: false, // Optional, wenn DOM- und Rendergröße getrennt werden sollen
+    companyName:        "Bockerl Games",
+    productName:        "EduScape",
+    productVersion:     "0.1",
+    showBanner:         unityShowBanner,
+    devicePixelRatio:   window.devicePixelRatio || 1
   };
 
-  // Unity starten (analog V5)
   createUnityInstance(canvas, config, (progress) => {
     if (progressBarFull) progressBarFull.style.width = (100 * progress) + "%";
   }).then((instance) => {
     unityInstance = instance;
     if (loadingBar) loadingBar.style.display = "none";
-    resizeCanvas(); // nach Init sicherstellen
+    resizeCanvas();
 
-    // Interner Fullscreen-Button (falls im Template vorhanden)
     if (fullscreenBtn) {
-      fullscreenBtn.onclick = async () => {
-        try {
-          const el  = container || canvas;
-          const rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
-          if (rfs) {
-            await rfs.call(el);
-          } else {
-            // Fallback: Unity-intern (nicht auf allen Browsern nötig)
-            try { unityInstance.SetFullscreen?.(1); } catch(_) {}
-          }
-          // Direkt danach auf neue Größe resizen
-          resizeCanvas();
-        } catch (_) { /* ignore */ }
+      fullscreenBtn.onclick = () => {
+        // Nur Host soll Fullscreen machen
+        window.top?.postMessage({ type: "KU_FS", action: "toggle" }, "*");
       };
     }
   }).catch((message) => {
     alert(message);
   });
 
-  // Erste Größenanpassung sofort
   resizeCanvas();
 </script>
   </body>

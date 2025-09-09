@@ -41,74 +41,68 @@
       <div id="unity-warning"></div>
     </div>
 
-    <script src="Build/V5_WebGL.loader.js"></script>
-    <script>
-      const container = document.getElementById('unity-container');
-      const canvas    = document.getElementById('unity-canvas');
-      const warning   = document.getElementById('unity-warning');
+  <script src="Build/V5_WebGL.loader.js"></script>
+<script>
+  const container = document.getElementById('unity-container');
+  const canvas    = document.getElementById('unity-canvas');
+  const warning   = document.getElementById('unity-warning');
 
-      // (Optional) einfache Banner-Funktion wie in Datei #1
-      function unityShowBanner(msg, type) {
-        if (!warning) return;
-        const div = document.createElement('div');
-        div.innerHTML = msg;
-        div.style.padding = '10px';
-        div.style.borderRadius = '6px';
-        if (type === 'error') { div.style.background = 'red'; div.style.color = 'white'; }
-        else { div.style.background = 'yellow'; }
-        warning.appendChild(div);
-        warning.style.display = 'block';
-        if (type !== 'error') setTimeout(() => {
-          if (div.parentNode) warning.removeChild(div);
-          warning.style.display = warning.children.length ? 'block' : 'none';
-        }, 5000);
+  function unityShowBanner(msg, type) {
+    if (!warning) return;
+    const div = document.createElement('div');
+    div.innerHTML = msg;
+    div.style.padding = '10px';
+    div.style.borderRadius = '6px';
+    if (type === 'error') { div.style.background = 'red'; div.style.color = 'white'; }
+    else { div.style.background = 'yellow'; }
+    warning.appendChild(div);
+    warning.style.display = 'block';
+    if (type !== 'error') setTimeout(() => {
+      if (div.parentNode) warning.removeChild(div);
+      warning.style.display = warning.children.length ? 'block' : 'none';
+    }, 5000);
+  }
+
+  let unityInstance = null;
+
+  function resizeCanvas() {
+    const w = Math.max(0, window.innerWidth);
+    const h = Math.max(0, window.innerHeight);
+    canvas.style.width  = w + 'px';
+    canvas.style.height = h + 'px';
+
+    const dpr = window.devicePixelRatio || 1;
+    const pw  = Math.floor(w * dpr);
+    const ph  = Math.floor(h * dpr);
+
+    if (canvas.width !== pw || canvas.height !== ph) {
+      canvas.width  = pw;
+      canvas.height = ph;
+      if (unityInstance?.Module?.setCanvasSize) {
+        unityInstance.Module.setCanvasSize(pw, ph, true);
       }
+    }
+  }
+  window.addEventListener('resize', resizeCanvas);
 
-      // Canvas vollflächig + Device Pixel Ratio berücksichtigen
-      let unityInstance = null;
-      function resizeCanvas() {
-        const w = Math.max(0, window.innerWidth);
-        const h = Math.max(0, window.innerHeight);
-        canvas.style.width  = w + 'px';
-        canvas.style.height = h + 'px';
+  createUnityInstance(canvas, {
+    dataUrl: "Build/V5_WebGL.data",
+    frameworkUrl: "Build/V5_WebGL.framework.js",
+    codeUrl: "Build/V5_WebGL.wasm",
+    streamingAssetsUrl: "StreamingAssets",
+    companyName: "Bockito Games",
+    productName: "KeyUcation Generator",
+    productVersion: "0.1",
+    showBanner: unityShowBanner,
+    devicePixelRatio: window.devicePixelRatio || 1
+  }).then((instance) => {
+    unityInstance = instance;
+    resizeCanvas();
+  }).catch((message) => {
+    alert(message);
+  });
 
-        const dpr = window.devicePixelRatio || 1;
-        const pw  = Math.floor(w * dpr);
-        const ph  = Math.floor(h * dpr);
-
-        if (canvas.width !== pw || canvas.height !== ph) {
-          canvas.width  = pw;
-          canvas.height = ph;
-          if (unityInstance && unityInstance.Module && unityInstance.Module.setCanvasSize) {
-            unityInstance.Module.setCanvasSize(pw, ph, true);
-          }
-        }
-      }
-      window.addEventListener('resize', resizeCanvas);
-
-      // Mobile-Klassen nicht nötig; Viewport-Meta ist schon gesetzt
-
-      // Unity starten
-      createUnityInstance(canvas, {
-         dataUrl: "Build/V5_WebGL.data",
-        frameworkUrl: "Build/V5_WebGL.framework.js",
-        codeUrl: "Build/V5_WebGL.wasm",
-        streamingAssetsUrl: "StreamingAssets",
-        companyName: "Bockito Games",
-        productName: "KeyUcation Generator",
-        productVersion: "0.1",
-        showBanner: unityShowBanner,
-        devicePixelRatio: window.devicePixelRatio || 1
-        // matchWebGLToCanvasSize: false, // falls du DOM- und Rendergröße trennen willst
-      }).then((instance) => {
-        unityInstance = instance;
-        resizeCanvas(); // nach Init sicherstellen
-      }).catch((message) => {
-        alert(message);
-      });
-
-      // erste Größenanpassung sofort
-      resizeCanvas();
-    </script>
+  resizeCanvas();
+</script>
   </body>
 </html>

@@ -295,29 +295,3 @@ pre {
             text-align: center;
         }
 }
-
-/* Container selbst im Vollbild auf volle Fläche bringen */
-.iframe-container:fullscreen {
-  width: 100vw !important;
-  height: 100vh !important;
-  margin: 0 !important;
-}
-
-/* WebKit/Safari Präfix */
-.iframe-container:-webkit-full-screen {
-  width: 100vw !important;
-  height: 100vh !important;
-  margin: 0 !important;
-}
-
-/* Sicherheitshalber: Das iframe im Container soll im Vollbild auch 100% füllen */
-.iframe-container:fullscreen iframe,
-.iframe-container:-webkit-full-screen iframe {
-  width: 100% !important;
-  height: 100% !important;
-  aspect-ratio: auto !important;
-  max-width: none !important;
-  display: block !important;
-  border: none !important;
-}
-

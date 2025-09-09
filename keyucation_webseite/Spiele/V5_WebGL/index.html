@@ -41,74 +41,108 @@
       <div id="unity-warning"></div>
     </div>
 
-    <script src="Build/V5_WebGL.loader.js"></script>
-    <script>
-      const container = document.getElementById('unity-container');
-      const canvas    = document.getElementById('unity-canvas');
-      const warning   = document.getElementById('unity-warning');
+<script src="Build/V5_WebGL.loader.js"></script>
+<script>
+  const canvas  = document.getElementById('unity-canvas');
+  const warning = document.getElementById('unity-warning');
 
-      // (Optional) einfache Banner-Funktion wie in Datei #1
-      function unityShowBanner(msg, type) {
-        if (!warning) return;
-        const div = document.createElement('div');
-        div.innerHTML = msg;
-        div.style.padding = '10px';
-        div.style.borderRadius = '6px';
-        if (type === 'error') { div.style.background = 'red'; div.style.color = 'white'; }
-        else { div.style.background = 'yellow'; }
-        warning.appendChild(div);
-        warning.style.display = 'block';
-        if (type !== 'error') setTimeout(() => {
-          if (div.parentNode) warning.removeChild(div);
-          warning.style.display = warning.children.length ? 'block' : 'none';
-        }, 5000);
-      }
+  function unityShowBanner(msg, type) {
+    if (!warning) return;
+    const div = document.createElement('div');
+    div.innerHTML = msg;
+    div.style.padding = '10px';
+    div.style.borderRadius = '6px';
+    if (type === 'error') { div.style.background = 'red'; div.style.color = 'white'; }
+    else { div.style.background = 'yellow'; }
+    warning.appendChild(div);
+    warning.style.display = 'block';
+    if (type !== 'error') setTimeout(() => {
+      if (div.parentNode) warning.removeChild(div);
+      warning.style.display = warning.children.length ? 'block' : 'none';
+    }, 5000);
+  }
 
-      // Canvas vollflächig + Device Pixel Ratio berücksichtigen
-      let unityInstance = null;
-      function resizeCanvas() {
-        const w = Math.max(0, window.innerWidth);
-        const h = Math.max(0, window.innerHeight);
-        canvas.style.width  = w + 'px';
-        canvas.style.height = h + 'px';
+  let unityInstance = null;
+  let resizeTimer   = null;
+  let lostContext   = false;
 
-        const dpr = window.devicePixelRatio || 1;
-        const pw  = Math.floor(w * dpr);
-        const ph  = Math.floor(h * dpr);
+  // 1) Context-Loss robust abfangen
+  canvas.addEventListener('webglcontextlost', (e) => {
+    e.preventDefault();        // erlaubt Restore
+    lostContext = true;
+  }, false);
+  canvas.addEventListener('webglcontextrestored', () => {
+    lostContext = false;
+    scheduleResize(50);
+  }, false);
 
-        if (canvas.width !== pw || canvas.height !== ph) {
-          canvas.width  = pw;
-          canvas.height = ph;
-          if (unityInstance && unityInstance.Module && unityInstance.Module.setCanvasSize) {
-            unityInstance.Module.setCanvasSize(pw, ph, true);
-          }
-        }
-      }
-      window.addEventListener('resize', resizeCanvas);
+  // 2) Sichere Viewport-Ermittlung
+  function getSafeViewport() {
+    const de = document.documentElement;
+    const ww = Math.max(de.clientWidth,  (window.innerWidth  || 0));
+    const hh = Math.max(de.clientHeight, (window.innerHeight || 0));
+    return { w: ww, h: hh };
+  }
 
-      // Mobile-Klassen nicht nötig; Viewport-Meta ist schon gesetzt
+  // 3) Resize – niemals auf 0x0 setzen; bei fraglichen Werten warten
+  function doResize() {
+    const { w, h } = getSafeViewport();
+    if (w < 2 || h < 2 || lostContext) {
+      // Layout noch nicht stabil → später erneut versuchen
+      scheduleResize(50);
+      return;
+    }
 
-      // Unity starten
-      createUnityInstance(canvas, {
-         dataUrl: "Build/V5_WebGL.data",
-        frameworkUrl: "Build/V5_WebGL.framework.js",
-        codeUrl: "Build/V5_WebGL.wasm",
-        streamingAssetsUrl: "StreamingAssets",
-        companyName: "Bockito Games",
-        productName: "KeyUcation Generator",
-        productVersion: "0.1",
-        showBanner: unityShowBanner,
-        devicePixelRatio: window.devicePixelRatio || 1
-        // matchWebGLToCanvasSize: false, // falls du DOM- und Rendergröße trennen willst
-      }).then((instance) => {
-        unityInstance = instance;
-        resizeCanvas(); // nach Init sicherstellen
-      }).catch((message) => {
-        alert(message);
-      });
+    // CSS-Logikgröße
+    canvas.style.width  = w + 'px';
+    canvas.style.height = h + 'px';
 
-      // erste Größenanpassung sofort
-      resizeCanvas();
-    </script>
+    // Physische Pixel (DPR)
+    const dpr = window.devicePixelRatio || 1;
+    const pw  = Math.max(2, Math.floor(w * dpr));
+    const ph  = Math.max(2, Math.floor(h * dpr));
+
+    if (canvas.width !== pw || canvas.height !== ph) {
+      canvas.width  = pw;
+      canvas.height = ph;
+      try { unityInstance?.Module?.setCanvasSize?.(pw, ph, true); } catch (_) {}
+    }
+  }
+
+  function scheduleResize(delay = 0) {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(doResize, delay);
+  }
+
+  // 4) Events: mehrfach und verzögert reagieren
+  window.addEventListener('resize', () => scheduleResize(50));
+  ['fullscreenchange', 'webkitfullscreenchange', 'msfullscreenchange'].forEach(ev =>
+    document.addEventListener(ev, () => { scheduleResize(16); scheduleResize(120); }, true)
+  );
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) scheduleResize(50); });
+
+  // 5) Unity starten
+  createUnityInstance(canvas, {
+    dataUrl: "Build/V5_WebGL.data",
+    frameworkUrl: "Build/V5_WebGL.framework.js",
+    codeUrl: "Build/V5_WebGL.wasm",
+    streamingAssetsUrl: "StreamingAssets",
+    companyName: "Bockito Games",
+    productName: "KeyUcation Generator",
+    productVersion: "0.1",
+    showBanner: unityShowBanner,
+    devicePixelRatio: window.devicePixelRatio || 1
+  }).then((instance) => {
+    unityInstance = instance;
+    scheduleResize(0);
+    scheduleResize(120); // nach Layout-Settle noch einmal
+  }).catch((message) => {
+    alert(message);
+  });
+
+  // Initial
+  scheduleResize(0);
+</script>
+
   </body>
 </html>

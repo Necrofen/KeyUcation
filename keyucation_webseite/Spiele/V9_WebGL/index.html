@@ -41,7 +41,7 @@
       <div id="unity-warning"></div>
     </div>
 
-    <script src="Build/V9_WebGL.loader.js"></script>
+    <script src="Build/V10_WebGL.loader.js"></script>
     <script>
       const canvas          = document.getElementById("unity-canvas");
       const warningBanner   = document.getElementById("unity-warning");
@@ -135,9 +135,9 @@
       // --- Unity starten (DPR fest auf 1, damit Unity selbst nicht hochskaliert) ---
       const buildUrl = "Build";
       const config = {
-        dataUrl:            buildUrl + "/V9_WebGL.data",
-        frameworkUrl:       buildUrl + "/V9_WebGL.framework.js",
-        codeUrl:            buildUrl + "/V9_WebGL.wasm",
+        dataUrl:            buildUrl + "/V10_WebGL.data",
+        frameworkUrl:       buildUrl + "/V10_WebGL.framework.js",
+        codeUrl:            buildUrl + "/V10_WebGL.wasm",
         streamingAssetsUrl: "StreamingAssets",
         companyName:        "Bockerl Games",
         productName:        "EduScape",
